@@ -26,6 +26,18 @@ const previewElement = document.getElementById("bracelet-preview");
 const selectionListElement = document.getElementById("selection-list");
 const totalPriceElement = document.getElementById("total-price");
 const resetButton = document.getElementById("reset-button");
+const themeToggleButton = document.getElementById("theme-toggle");
+const sunIconSvg = `
+  <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+    <circle cx="12" cy="12" r="4.5"></circle>
+    <path d="M12 2.5v2.2M12 19.3v2.2M21.5 12h-2.2M4.7 12H2.5M18.7 5.3l-1.6 1.6M6.9 17.1l-1.6 1.6M18.7 18.7l-1.6-1.6M6.9 6.9L5.3 5.3"></path>
+  </svg>
+`;
+const moonIconSvg = `
+  <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+    <path d="M20 14.2A8.4 8.4 0 1 1 9.8 4a7.2 7.2 0 1 0 10.2 10.2Z"></path>
+  </svg>
+`;
 
 function getStoneById(stoneId) {
   return stones.find((stone) => stone.id === stoneId);
@@ -202,6 +214,35 @@ function resetDesign() {
 }
 
 resetButton.addEventListener("click", resetDesign);
+
+function applyTheme(theme) {
+  document.documentElement.setAttribute("data-theme", theme);
+  if (themeToggleButton) {
+    themeToggleButton.innerHTML = theme === "dark" ? sunIconSvg : moonIconSvg;
+    themeToggleButton.setAttribute("aria-label", theme === "dark" ? "Açık moda geç" : "Koyu moda geç");
+    themeToggleButton.setAttribute("title", theme === "dark" ? "Açık moda geç" : "Koyu moda geç");
+  }
+}
+
+function applyThemeWithTransition(theme) {
+  document.documentElement.classList.add("theme-transition");
+  applyTheme(theme);
+  window.setTimeout(() => {
+    document.documentElement.classList.remove("theme-transition");
+  }, 420);
+}
+
+const storedTheme = localStorage.getItem("my-capella-theme");
+applyTheme(storedTheme || "dark");
+
+if (themeToggleButton) {
+  themeToggleButton.addEventListener("click", () => {
+    const currentTheme = document.documentElement.getAttribute("data-theme") || "dark";
+    const nextTheme = currentTheme === "dark" ? "light" : "dark";
+    applyThemeWithTransition(nextTheme);
+    localStorage.setItem("my-capella-theme", nextTheme);
+  });
+}
 
 renderStonePicker();
 renderBracelet();
