@@ -26,7 +26,7 @@ const previewElement = document.getElementById("bracelet-preview");
 const selectionListElement = document.getElementById("selection-list");
 const totalPriceElement = document.getElementById("total-price");
 const resetButton = document.getElementById("reset-button");
-const whatsappOrderButton = document.getElementById("whatsapp-order-button");
+const whatsappOrderLink = document.getElementById("whatsapp-order-link");
 const consultButton = document.getElementById("consult-button");
 const themeToggleButton = document.getElementById("theme-toggle");
 const sunIconSvg = `
@@ -204,6 +204,7 @@ function renderSummary() {
   selectionListElement.prepend(baseLine);
 
   totalPriceElement.textContent = currencyFormatter.format(total);
+  syncWhatsappOrderLink();
 }
 
 function resetDesign() {
@@ -285,52 +286,34 @@ function buildWhatsappMessage() {
   return lines.join("\n");
 }
 
-function openWhatsappWithText(text) {
+function buildWhatsappUrl(text) {
   const raw = String(WHATSAPP_PHONE_E164 || "");
   if (!raw || raw.includes("X")) {
     window.alert("WhatsApp numarası ayarlanmadı. script.js içindeki WHATSAPP_PHONE_E164 değerini kendi numaranla değiştir (örn: 905xxxxxxxxx).");
-    return;
+    return null;
   }
 
   const phone = raw.replace(/[^\d]/g, "");
   if (phone.length < 10) {
     window.alert("WhatsApp numarası geçersiz görünüyor. script.js içindeki WHATSAPP_PHONE_E164 değerini E.164 formatında gir (örn: 905xxxxxxxxx).");
-    return;
+    return null;
   }
   const encodedText = encodeURIComponent(text);
-  const url = `https://api.whatsapp.com/send?phone=${phone}&text=${encodedText}`;
-
-  // Bazı tarayıcılarda window.open dönüşü güvenilir değil ve hem yeni sekme hem mevcut sekme
-  // yönlenebiliyor. Bu yüzden sadece "yeni sekme" davranışını garanti eden bir <a> tıklatıyoruz.
-  const link = document.createElement("a");
-  link.href = url;
-  link.target = "_blank";
-  link.rel = "noopener noreferrer";
-  link.style.position = "fixed";
-  link.style.left = "-9999px";
-  document.body.appendChild(link);
-  link.click();
-  link.remove();
-
-  // Eğer pop-up engellendiyse burada mevcut sekmeyi zorla yönlendirmiyoruz.
-  // Kullanıcıya kısa bir uyarı göstermek daha güvenli (çifte yönlendirmeyi engeller).
-  window.setTimeout(() => {
-    if (document.visibilityState === "visible") {
-      window.alert("WhatsApp sekmesi açılmadıysa tarayıcınız pop-up engelliyor olabilir. Pop-up izni verip tekrar deneyin.");
-    }
-  }, 600);
+  return `https://api.whatsapp.com/send?phone=${phone}&text=${encodedText}`;
 }
 
-if (whatsappOrderButton) {
-  whatsappOrderButton.addEventListener("click", () => {
-    openWhatsappWithText(buildWhatsappMessage());
-  });
+function syncWhatsappOrderLink() {
+  if (!whatsappOrderLink) return;
+  const url = buildWhatsappUrl(buildWhatsappMessage());
+  if (url) whatsappOrderLink.href = url;
 }
 
 if (consultButton) {
   consultButton.addEventListener("click", () => {
     const text = "Merhaba, danışmanlık almak istiyorum. Doğal taş bileklikler hakkında bilgi verebilir misiniz?";
-    openWhatsappWithText(text);
+    const url = buildWhatsappUrl(text);
+    if (!url) return;
+    window.open(url, "_blank", "noopener,noreferrer");
   });
 }
 
