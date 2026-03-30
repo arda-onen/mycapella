@@ -299,7 +299,14 @@ function openWhatsappWithText(text) {
   }
   const encodedText = encodeURIComponent(text);
   const url = `https://wa.me/${phone}?text=${encodedText}`;
-  window.open(url, "_blank", "noopener,noreferrer");
+
+  // GitHub Pages / mobile tarayıcılarda popup engellenebiliyor.
+  const opened = window.open(url, "_blank", "noopener,noreferrer");
+  if (!opened) {
+    // İkinci bir format daha yaygın çalışıyor.
+    const fallbackUrl = `https://api.whatsapp.com/send?phone=${phone}&text=${encodedText}`;
+    window.location.assign(fallbackUrl);
+  }
 }
 
 if (whatsappOrderButton) {
