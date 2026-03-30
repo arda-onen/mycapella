@@ -126,6 +126,11 @@ a {
   background: linear-gradient(145deg, #c38d61, var(--primary-dark));
   color: #fff;
   cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  text-decoration: none;
+  line-height: 1.15;
   box-shadow: 0 10px 16px rgba(120, 72, 35, 0.28);
   transition: transform 0.2s ease, box-shadow 0.2s ease, filter 0.2s ease;
 }
@@ -197,6 +202,7 @@ a {
 
 .button-block {
   width: 100%;
+  display: flex;
 }
 
 .hero {
