@@ -26,6 +26,8 @@ const previewElement = document.getElementById("bracelet-preview");
 const selectionListElement = document.getElementById("selection-list");
 const totalPriceElement = document.getElementById("total-price");
 const resetButton = document.getElementById("reset-button");
+const whatsappOrderButton = document.getElementById("whatsapp-order-button");
+const consultButton = document.getElementById("consult-button");
 const themeToggleButton = document.getElementById("theme-toggle");
 const sunIconSvg = `
   <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
@@ -241,6 +243,75 @@ if (themeToggleButton) {
     const nextTheme = currentTheme === "dark" ? "light" : "dark";
     applyThemeWithTransition(nextTheme);
     localStorage.setItem("my-capella-theme", nextTheme);
+  });
+}
+
+const WHATSAPP_PHONE_E164 = "905301764835";
+
+function buildSelectionCounts() {
+  return state.slots.reduce((acc, stoneId) => {
+    acc[stoneId] = (acc[stoneId] || 0) + 1;
+    return acc;
+  }, {});
+}
+
+function calculateTotalPrice() {
+  const counts = buildSelectionCounts();
+  let total = basePrice;
+  Object.entries(counts).forEach(([stoneId, amount]) => {
+    const stone = getStoneById(stoneId);
+    total += amount * stone.price;
+  });
+  return total;
+}
+
+function buildWhatsappMessage() {
+  const counts = buildSelectionCounts();
+  const total = calculateTotalPrice();
+
+  const lines = [];
+  lines.push("Merhaba, My Capella üzerinden bileklik siparişi vermek istiyorum.");
+  lines.push("");
+  lines.push("Tasarım detayları:");
+  Object.entries(counts).forEach(([stoneId, amount]) => {
+    const stone = getStoneById(stoneId);
+    lines.push(`- ${stone.name}: ${amount} adet`);
+  });
+  lines.push(`- Baz ücret: ${currencyFormatter.format(basePrice)}`);
+  lines.push(`- Toplam: ${currencyFormatter.format(total)}`);
+  lines.push("");
+  lines.push("Sipariş için yardımcı olur musunuz?");
+
+  return lines.join("\n");
+}
+
+function openWhatsappWithText(text) {
+  const raw = String(WHATSAPP_PHONE_E164 || "");
+  if (!raw || raw.includes("X")) {
+    window.alert("WhatsApp numarası ayarlanmadı. script.js içindeki WHATSAPP_PHONE_E164 değerini kendi numaranla değiştir (örn: 905xxxxxxxxx).");
+    return;
+  }
+
+  const phone = raw.replace(/[^\d]/g, "");
+  if (phone.length < 10) {
+    window.alert("WhatsApp numarası geçersiz görünüyor. script.js içindeki WHATSAPP_PHONE_E164 değerini E.164 formatında gir (örn: 905xxxxxxxxx).");
+    return;
+  }
+  const encodedText = encodeURIComponent(text);
+  const url = `https://wa.me/${phone}?text=${encodedText}`;
+  window.open(url, "_blank", "noopener,noreferrer");
+}
+
+if (whatsappOrderButton) {
+  whatsappOrderButton.addEventListener("click", () => {
+    openWhatsappWithText(buildWhatsappMessage());
+  });
+}
+
+if (consultButton) {
+  consultButton.addEventListener("click", () => {
+    const text = "Merhaba, danışmanlık almak istiyorum. Doğal taş bileklikler hakkında bilgi verebilir misiniz?";
+    openWhatsappWithText(text);
   });
 }
 
